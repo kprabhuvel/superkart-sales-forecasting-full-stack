@@ -17,12 +17,12 @@ def home():
         "message": "SuperKart Sales Forecasting API",
         "status": "running",
         "endpoints": {
-            "/predict": "POST - Make single prediction",
-            "/predict_batch": "POST - Make batch predictions"
+            "/v1/predict": "POST - Make single prediction",
+            "/v1/predictbatch": "POST - Make batch predictions"
         }
     })
 
-@app.route('/predict', methods=['POST'])
+@app.post('/v1/predict')
 def predict():
     try:
         data = request.get_json()
@@ -63,17 +63,13 @@ def predict():
             "status": "error"
         }), 400
 
-@app.route('/predict_batch', methods=['POST'])
+@app.post('/v1/predictbatch')
 def predict_batch():
     try:
-        data = request.get_json()
-        records = data.get('records', [])
-        
-        if not records:
-            return jsonify({"error": "No records provided", "status": "error"}), 400
-        
+        file = request.files['file']
+                
         # Convert to DataFrame
-        df = pd.DataFrame(records)
+        df = pd.read_csv(file)
         
         # Calculate derived features
         current_year = 2010
