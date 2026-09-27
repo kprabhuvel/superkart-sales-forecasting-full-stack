@@ -44,7 +44,7 @@ with st.form("prediction_form"):
         }
         
         try:
-            response = requests.post(f"{BACKEND_URL}/predict", json=data, timeout=10)
+            response = requests.post(f"{BACKEND_URL}/v1/predict", json=data, timeout=10)
             if response.status_code == 200:
                 result = response.json()
                 predicted_sales = result.get("prediction", 0)
@@ -59,21 +59,15 @@ st.markdown("---")
 st.subheader("Batch Prediction")
 uploaded_file = st.file_uploader("Upload CSV file for batch prediction", type=['csv'])
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    st.dataframe(df.head())
-    
+if uploaded_file is not None:    
     if st.button("Predict Batch"):
         records = df.to_dict('records')
         try:
-            response = requests.post(f"{BACKEND_URL}/predict_batch", json={"records": records}, timeout=30)
+            response = requests.post(f"{BACKEND_URL}/v1/predict_batch", files={"file": uploaded_file}, timeout=30)
             if response.status_code == 200:
-                result = response.json()
-                predictions = result.get("predictions", [])
-                df['Predicted_Sales'] = [p['prediction'] for p in predictions]
-                st.success(f"Predictions completed for {len(predictions)} records")
-                st.dataframe(df)
-                st.download_button("Download Results", df.to_csv(index=False), "predictions.csv", "text/csv")
+                predictions = response.json()
+                st.success("Batch predictions completed!")
+                st.write(predictions)  # Display the predictions
             else:
                 st.error(f"Error: {response.text}")
         except Exception as e:
